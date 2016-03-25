@@ -193,10 +193,10 @@
   #set ($extraParams = "&amp;space=$escapetool.url($xcontext.macro.params.space)")
 #end
 #if ("$!xcontext.macro.params.parent" != "") 
-  #set ($extraParams = "${extraParams}&amp;parent=$escapetool.url($xcontext.macro.params.parent)")
+  #set ($extraParams = "$!{extraParams}&amp;parent=$escapetool.url($xcontext.macro.params.parent)")
 #end
 #if ("$!xcontext.macro.params.tag" != "") 
-  #set ($extraParams = "${extraParams}&amp;xtag=$escapetool.url($xcontext.macro.params.tag)")
+  #set ($extraParams = "$!{extraParams}&amp;xtag=$escapetool.url($xcontext.macro.params.tag)")
 #end
 #if ("$!extraParams" != "")
   #set($discard = $options.put('extraParams', $extraParams))

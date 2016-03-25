@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.2" reference="Projects.LiveTableViewSheet" locale="">
+  <web>Projects</web>
+  <name>LiveTableViewSheet</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1458828984000</creationDate>
+  <parent>Projects.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1458830919000</date>
+  <contentUpdateDate>1458829246000</contentUpdateDate>
+  <version>1.1</version>
+  <title>LiveTableViewSheet</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity}}
+#set($liveTableObj = $doc.getObject('AppWithinMinutes.LiveTableClass'))
+#if($liveTableObj)
+  #set($discard = $doc.use($liveTableObj))
+  #set($discard = $xwiki.ssx.use('AppWithinMinutes.LiveTableViewSheet'))
+  #set($discard = $xwiki.jsx.use('AppWithinMinutes.LiveTableViewSheet'))
+  #if (!$isReadOnly)
+    ## Determine the user's rights
+    #set($classFullName = $liveTableObj.getProperty('class').value)
+    #set($className = $stringtool.removeEnd($classFullName, 'Class'))
+    #set($classRef = $services.model.resolveDocument($classFullName))
+    #set($dataSpaceRef = $services.model.resolveSpace($liveTableObj.getValue('dataSpace'), 'explicit',
+      $doc.documentReference))
+    #set($hasCreateData = $services.security.authorization.hasAccess('edit', $dataSpaceRef))
+    #set($hasDeleteData = $services.security.authorization.hasAccess('admin', $dataSpaceRef))
+    #set($hasEditApplication = $services.security.authorization.hasAccess('edit', $classRef))
+    #set($translationsRef = $services.model.resolveDocument("${className}Translations"))
+    #set($hasEditTranslations = $xwiki.isMultiLingual() &amp;&amp; $xwiki.exists($translationsRef)
+      &amp;&amp; $services.security.authorization.hasAccess('edit', $translationsRef))
+    #set($hasDeleteApplication = $hasDeleteData
+      &amp;&amp; $services.security.authorization.hasAccess('admin', $doc.documentReference.parent)
+      &amp;&amp; $services.security.authorization.hasAccess('admin', $classRef.parent))
+    ## Display the application actions based on the user's rights
+    #if($hasCreateData || $hasDeleteData || $hasEditApplication || $hasEditTranslations || $hasDeleteApplication)
+      (% id="actionBox" class="floatinginfobox" %)
+      (((
+        = $services.localization.render('platform.appwithinminutes.appHomePageActionsHeading') =
+        #if($hasCreateData)
+          * [[$services.localization.render('platform.appwithinminutes.appHomePageAddEntryHint')&gt;&gt;||anchor="AddNewEntry" class="action add"]]##
+            #set($entryDoc = $services.model.resolveDocument('__entryName__', 'explicit', $dataSpaceRef))
+            #set ($params = {
+              'template': "${className}Template",
+              'parent': $services.model.serialize($doc.documentReference, 'local')
+            })
+            #if ($xwiki.getDocument($classRef).xWikiClass.properties.size() &gt; 0)
+              ## The entry has properties so go in edit mode to edit them.
+              #set ($action = 'edit')
+              #set ($params.editor = 'inline')
+            #else
+              ## There are no properties to edit so create the new entry and get back to the home page.
+              #set ($action = 'save')
+              #set ($discard = $params.putAll({
+                'xredirect': $doc.getURL(),
+                'form_token': $services.csrf.token
+              }))
+            #end
+            #set($hiddenURL = $xwiki.getURL($entryDoc, $action, $escapetool.url($params)).replace('?', '/?'))
+            {{html}}&lt;input type="hidden" value="$!{hiddenURL}" /&gt;{{/html}}
+        #end
+        #if($hasDeleteData)
+          #set ($deleteDataURL = $xwiki.getURL('AppWithinMinutes.DeleteApplication', 'view', $escapetool.url({
+            'appName': $doc.space,
+            'resolve': true,
+            'scope': 'entries',
+            'xredirect': $doc.getURL()
+          })))
+          * [[$services.localization.render('platform.appwithinminutes.appHomePageDeleteEntriesLabel')&gt;&gt;path:$deleteDataURL||class="action deleteData"]]
+        #end
+        #if($hasEditApplication)
+          #set ($queryString = $escapetool.url({
+            'appName': $doc.space,
+            'resolve': true
+          }))
+          * [[$services.localization.render('platform.appwithinminutes.appHomePageEditAppLabel')&gt;&gt;AppWithinMinutes.CreateApplication||queryString="$queryString" class="action edit"]]
+        #end
+        #if($hasEditTranslations)
+          * [[$services.localization.render('platform.appwithinminutes.appHomePageTranslateAppLabel')&gt;&gt;path:$xwiki.getURL($translationsRef, 'edit', 'editor=wiki')||class="action translate"]]
+        #end
+        #if($hasDeleteApplication)
+          #set ($deleteAppURL = $xwiki.getURL('AppWithinMinutes.DeleteApplication', 'view', $escapetool.url({
+            'appName': $doc.space,
+            'resolve': true,
+            'xredirect': $doc.getURL()
+          })))
+          * [[$services.localization.render('platform.appwithinminutes.appHomePageDeleteAppLabel')&gt;&gt;path:$deleteAppURL||class="action delete"]]
+        #end
+      )))
+    #end
+  #end
+  $doc.display('description')
+  ## Display the live table only if it was generated.
+  #if($doc.content.length() &gt; 0)
+    = $services.localization.render('platform.appwithinminutes.appLiveTableHeading') =
+    ## We don't use the Include macro (with empty reference) because we want the content to be executed with the rights
+    ## of the current document rather than the rights of the sheet. This is important because the user can modify the
+    ## content of the application home page which means we could execute untrusted content with the rights of the sheet.
+    ## Ideally we should use the Display macro with a parameter to disable the sheet, but we don't have this parameter.
+    ## We don't clean the HTML content because getRenderedContent() should produce clean HTML, unless the user has 
+    ## disabled the HTML cleaning, in which case he will get what he asked for. Note that one good reason to disable
+    ## HTML cleaning is to preserve the whitespaces in the attribute values.
+    ## Escape {{ in the rendered content to be sure that the HTML macro is not closed unintentionally.
+    {{html clean="false"}}$doc.getRenderedContent($doc.content,
+      $doc.syntax.toIdString()).replace('{{', '&amp;amp;#123;&amp;amp;#123;'){{/html}}
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>
