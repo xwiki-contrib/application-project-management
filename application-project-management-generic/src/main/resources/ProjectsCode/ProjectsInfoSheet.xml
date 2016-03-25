@@ -196,10 +196,10 @@ priority=1</parameters>
 #if(!$doc.isNew() and $context.display != 'edit' and !$subproject)
   == $services.localization.render('prj.subproject') ==
 
-  #set($subprojectUrl = $doc.getURL('create', 'template=ProjectsCode.ProjectsCodeTemplate&amp;space=Projects'))
+  #set($subprojectUrl = $doc.getURL('create', 'template=ProjectsCode.ProjectsCodeTemplate'))
   [[ [[image:icon:add||style="float:left"]] $services.localization.render('prj.subproject.create')&gt;&gt;path:$subprojectUrl||class="addSubprojectLink"]]
 
-  {{projectdocuments id="pd1" count="5" actions="false" parent="${doc.fullName}" space="Projects" columns="doc.title" tag="project"/}}
+  {{projectdocuments id="pd1" count="5" actions="false" parent="${doc.fullName}" columns="doc.title" tag="project"/}}
 #end
 
   ; &lt;label for="content_container836"&gt;$escapetool.xml($doc.displayPrettyName('details', false, false))&lt;/label&gt;

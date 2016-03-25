@@ -70,7 +70,7 @@
       </skin>
     </class>
     <property>
-      <skin>ProjectsCode.SkinExtension</skin>
+      <skin/>
     </property>
   </object>
 </xwikidoc>
